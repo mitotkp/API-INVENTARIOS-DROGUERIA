@@ -356,10 +356,21 @@ export class InventoryService {
                 .input('VENDEDOR', sql.Int, codVendedor)
                 .query(inventoryQuerys.getSellerCount)
 
-            if(validacion.length === 0){
+            if(validacion.recordset.length === 0){
                 return {
                     ok: false, 
                     message: 'Acceso denegado: No te has unido a este conteo. Por favor únete primero.'
+                }
+            }
+
+            const validacionArticulo = await pool.request()
+                .input('CODARTICULO', sql.Int, articuloData.codArticulo)
+                .query(inventoryQuerys.checkArticleExists); 
+
+            if(validacionArticulo.recordset.length === 0){
+                return {
+                    ok: false, 
+                    message: `Error: El articulo con codigo: ${articuloData.codArticulo} no existe en la base de datos.`
                 }
             }
 

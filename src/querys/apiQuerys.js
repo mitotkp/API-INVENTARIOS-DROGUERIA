@@ -324,6 +324,15 @@ export class  inventoryQuerys {
     (CAST(GETDATE() AS DATE), @CODARTICULO, @TALLA, @COLOR, CONVERT(TIME, GETDATE()), @CODVENDEDOR, @UNIDADES, @UNIDADESOLICITADAS,  @IDCONTEO)
     `; 
 
+    static checkArticleExists = `
+        SELECT 
+            CODARTICULO 
+        FROM 
+            ARTICULOS 
+        WHERE 
+            CODARTICULO = @CODARTICULO
+    `; 
+
 }
 
 export class sellerQUerys {
