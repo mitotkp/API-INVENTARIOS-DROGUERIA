@@ -351,6 +351,17 @@ export class InventoryService {
         try{
             const pool = await getConnection(); 
 
+            const estadoConteo = await pool.request()
+                .input('CONTEO', sql.NVarChar, idConteo)
+                .query(inventoryQuerys.getConteoById);
+
+            if (estadoConteo.recordset.length > 0 && estadoConteo.recordset[0].ESTADO === 'CERRADO') {
+                return {
+                    ok: false, 
+                    message: 'Acceso denegado: Este conteo ya fue CERRADO y no admite más artículos.'
+                };
+            }
+
             const validacion = await pool.request()
                 .input('CONTEO', sql.NVarChar, idConteo)
                 .input('VENDEDOR', sql.Int, codVendedor)
@@ -374,13 +385,27 @@ export class InventoryService {
                 }
             }
 
+            const articulosSolicitados = await pool.request()
+                .input('CONTEO', sql.NVarChar, idConteo)
+                .input('CODARTICULO', sql.Int, articuloData.codArticulo)
+                .query(inventoryQuerys.articlesByOrderLine)
+
+            if(articulosSolicitados.recordset.length === 0){
+                return {
+                    ok: false, 
+                    message: `Atención: El artículo ${articuloData.codArticulo} NO pertenece al pedido original.`
+                }
+            }
+
+            const unidadesObtenidas = articulosSolicitados.recordset[0].PRODUCTCOUNT; 
+
             const result = await pool.request()
                 .input('IDCONTEO', sql.NVarChar, idConteo)
                 .input('CODARTICULO', sql.Int, articuloData.codArticulo)
                 .input('TALLA', sql.NVarChar, '.')
                 .input('COLOR', sql.NVarChar, '.')
                 .input('UNIDADES', sql.Int, articuloData.unidades)
-                .input('UNIDADESOLICITADAS', sql.Int, articuloData.unidadesSolicitadas)
+                .input('UNIDADESOLICITADAS', sql.Int, unidadesObtenidas)
                 .input('CODVENDEDOR', sql.Int, codVendedor)
                 .query(inventoryQuerys.insertProductLine)
 
@@ -391,6 +416,83 @@ export class InventoryService {
 
         }catch(error){
             console.error("Error en el servicio al insertar línea de conteo:", error);
+            throw error;
+        }
+    }
+
+    static async verifyCountDifferences(idConteo) {
+        try {
+            const pool = await getConnection();
+
+            const comprobacion = await pool.request()
+                .input('CONTEO', sql.NVarChar, idConteo)
+                .query(inventoryQuerys.checkCountDifferences);
+
+            if (comprobacion.recordset.length === 0) {
+                return { ok: false, message: 'No se encontraron detalles para este conteo.' };
+            }
+
+            const detalles = comprobacion.recordset;
+            const conDiferencias = detalles.filter(item => item.DIFERENCIA !== 0);
+            
+            return {
+                ok: true,
+                hayDiferencias: conDiferencias.length > 0,
+                totalArticulos: detalles.length,
+                articulosConError: conDiferencias.length,
+                detalles: detalles 
+            };
+
+        } catch (error) {
+            console.error("Error al comprobar diferencias del conteo:", error);
+            throw error;
+        }
+    }
+
+    static async closeCount(idConteo, codVendedor, adminPassword) {
+        try {
+            const pool = await getConnection();
+
+            const validacion = await pool.request()
+                .input('CONTEO', sql.NVarChar, idConteo)
+                .input('VENDEDOR', sql.Int, codVendedor)
+                .query(inventoryQuerys.getSellerCount);
+
+            if (validacion.recordset.length === 0) {
+                return { ok: false, message: 'Acceso denegado: No puedes cerrar un conteo al que no perteneces.' };
+            }
+
+            const comprobacion = await pool.request()
+                .input('CONTEO', sql.NVarChar, idConteo)
+                .query(inventoryQuerys.checkCountDifferences);
+
+            let hayDiferencias = false;
+            if (comprobacion.recordset.length > 0) {
+                hayDiferencias = comprobacion.recordset.some(item => item.DIFERENCIA !== 0);
+            }
+
+            if (hayDiferencias) {
+                if (!adminPassword || adminPassword !== process.env.ADMIN_PASSWORD) {
+                    return { 
+                        ok: false, 
+                        message: 'Hay diferencias en el conteo. Se requiere la clave de administrador correcta para cerrar.' 
+                    };
+                }
+            }
+
+            await pool.request()
+                .input('CONTEO', sql.NVarChar, idConteo)
+                .query(inventoryQuerys.closePedido);
+
+            return {
+                ok: true,
+                message: hayDiferencias 
+                    ? 'Conteo cerrado de forma forzada por el Administrador.'
+                    : 'Conteo cerrado exitosamente. ¡Todo cuadra perfectamente!'
+            };
+
+        } catch (error) {
+            console.error("Error al cerrar el conteo:", error);
             throw error;
         }
     }

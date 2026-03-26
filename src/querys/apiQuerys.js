@@ -281,8 +281,8 @@ export class  inventoryQuerys {
     `; 
 
     static createPedido = `
-        INSERT INTO RIP.PEDIDOS_CONTEOS (IDPEDIDO, IDCONTEO, FECHA)
-        VALUES (@PEDIDO, @CONTEO, GETDATE())
+        INSERT INTO RIP.PEDIDOS_CONTEOS (IDPEDIDO, IDCONTEO, FECHA, ESTADO)
+        VALUES (@PEDIDO, @CONTEO, GETDATE(), 'ACTIVO')
     `; 
 
     static insertSellerCount = `
@@ -338,18 +338,37 @@ export class  inventoryQuerys {
             , RLP.PRODUCTCOUNT
             , RLP.PRECIOUNITARIO
             , RLP.TOTALLINEA
-            , RCL.IDCONTEO
-            , RCL.CODARTICULO
-            , RCL.TALLA
-            , RCL.COLOR
-            , RCL.UNIDADES
         FROM 
-            RIP.CONTEOSLIN RCL 
-            INNER JOIN RIP.PEDIDOS_CONTEOS RPC ON RCL.IDCONTEO = RPC.IDCONTEO
+            RIP.PEDIDOS_CONTEOS RPC
             INNER JOIN RIP.LINEA_PED RLP ON RPC.IDPEDIDO = RLP.ORDERID
         WHERE 
-            RCL.IDCONTEO = @CONTEO
+            RPC.IDCONTEO = @CONTEO 
+            AND RLP.CODARTICULO = @CODARTICULO
     `; 
+
+    static checkCountDifferences = `
+        SELECT 
+            RLP.CODARTICULO,
+            ART.DESCRIPCION,
+            RLP.PRODUCTCOUNT AS SOLICITADAS,
+            ISNULL(SUM(RCL.UNIDADES), 0) AS CONTADAS,
+            (ISNULL(SUM(RCL.UNIDADES), 0) - RLP.PRODUCTCOUNT) AS DIFERENCIA
+        FROM 
+            RIP.PEDIDOS_CONTEOS RPC
+            INNER JOIN RIP.LINEA_PED RLP ON RPC.IDPEDIDO = RLP.ORDERID
+            LEFT JOIN ARTICULOS ART ON RLP.CODARTICULO = ART.CODARTICULO
+            LEFT JOIN RIP.CONTEOSLIN RCL ON RPC.IDCONTEO = RCL.IDCONTEO AND RLP.CODARTICULO = RCL.CODARTICULO
+        WHERE 
+            RPC.IDCONTEO = @CONTEO
+        GROUP BY 
+            RLP.CODARTICULO, ART.DESCRIPCION, RLP.PRODUCTCOUNT
+    `;
+
+    static closePedido = `
+        UPDATE RIP.PEDIDOS_CONTEOS 
+        SET ESTADO = 'CERRADO' 
+        WHERE IDCONTEO = @CONTEO
+    `;
 
 }
 

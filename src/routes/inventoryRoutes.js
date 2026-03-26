@@ -13,4 +13,6 @@ router.get('/getCountBySeller', verificarToken, InventoryControllers.oneCountByS
 router.post('/createCount', verificarToken, InventoryControllers.createCount); 
 router.post('/joinCount', verificarToken, InventoryControllers.joinCount); 
 router.post('/scanProduct', verificarToken, InventoryControllers.scanProduct);
+router.get('/verifyCount', verificarToken, InventoryControllers.verifyCount); 
+router.post('/closeCount', verificarToken, InventoryControllers.closeCount);
 export default router; 

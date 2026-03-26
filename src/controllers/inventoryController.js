@@ -232,7 +232,34 @@ export class InventoryControllers {
         }
     }
 
+    static verifyCount = async (req, res) => {
+        try {
+            const { idConteo } = req.query;
+            if (!idConteo) return res.status(400).json({ ok: false, message: "Falta el idConteo" });
 
+            const resultado = await InventoryService.verifyCountDifferences(idConteo);
+            res.status(resultado.ok ? 200 : 400).json(resultado);
+        } catch (error) {
+            res.status(500).json({ ok: false, error: "Error al verificar el conteo" });
+        }
+    }
 
+    static closeCount = async (req, res) => {
+        try {
+            const { idConteo, adminPassword } = req.body; 
+            
+            if (!idConteo) {
+                return res.status(400).json({ ok: false, message: "El idConteo es obligatorio" });
+            }
+
+            const codVendedor = req.user.codVendedor; 
+            
+            const resultado = await InventoryService.closeCount(idConteo, codVendedor, adminPassword);
+            
+            return res.status(resultado.ok ? 200 : 403).json(resultado);
+        } catch (error) {
+            res.status(500).json({ ok: false, error: "Error al cerrar el conteo" });
+        }
+    }
 
 }
