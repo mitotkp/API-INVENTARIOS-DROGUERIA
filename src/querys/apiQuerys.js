@@ -112,10 +112,12 @@ export class  inventoryQuerys {
             , RCP.CODVENDEDOR 
             , RCP.ORDERID
             , RCP.CLIENTEID
+            , C.NOMBRECLIENTE
             , RCP.ESTATUS
             , RCP.TOTALPRECIO
         FROM 
             RIP.CABECERA_PED RCP
+            INNER JOIN CLIENTES C ON C.CODCLIENTE = RCP.CLIENTEID
         WHERE
             (@BUSQUEDA IS NULL 
             OR RCP.ORDERID  = @BUSQUEDA 
@@ -133,10 +135,12 @@ export class  inventoryQuerys {
             , RCP.CODVENDEDOR 
             , RCP.ORDERID
             , RCP.CLIENTEID
+            , C.NOMBRECLIENTE
             , RCP.ESTATUS
             , RCP.TOTALPRECIO
         FROM 
             RIP.CABECERA_PED RCP
+            INNER JOIN CLIENTES C ON RCP.CLIENTEID = C.CODCLIENTE
         WHERE
             RCP.ORDERID = @ORDERID
     `; 
@@ -166,14 +170,6 @@ export class  inventoryQuerys {
             OR RCP.ORDERID  = @BUSQUEDA 
             -- OR RCP.ORDERID = @BUSQUEDA  
             OR CAST(RCP.ORDERID AS INT) = @BUSQUEDA)
-    `; 
-    
-    static postPedidos = `
-
-    `;
-    
-    static editPedidos = `
-    
     `; 
 
     static getConteos = `
@@ -318,10 +314,10 @@ export class  inventoryQuerys {
     `; 
 
     static insertProductLine = `
-    INSERT INTO RIP.CONTEOSLIN 
-    (FECHA, CODARTICULO, TALLA, COLOR, HORACONTEO, CODVENDEDOR, UNIDADES, UNIDADESOLICITADAS, IDCONTEO)
-    VALUES 
-    (CAST(GETDATE() AS DATE), @CODARTICULO, @TALLA, @COLOR, CONVERT(TIME, GETDATE()), @CODVENDEDOR, @UNIDADES, @UNIDADESOLICITADAS,  @IDCONTEO)
+        INSERT INTO RIP.CONTEOSLIN 
+        (FECHA, CODARTICULO, TALLA, COLOR, HORACONTEO, CODVENDEDOR, UNIDADES, UNIDADESOLICITADAS, IDCONTEO)
+        VALUES 
+        (CAST(GETDATE() AS DATE), @CODARTICULO, @TALLA, @COLOR, CONVERT(TIME, GETDATE()), @CODVENDEDOR, @UNIDADES, @UNIDADESOLICITADAS,  @IDCONTEO)
     `; 
 
     static checkArticleExists = `
@@ -331,6 +327,28 @@ export class  inventoryQuerys {
             ARTICULOS 
         WHERE 
             CODARTICULO = @CODARTICULO
+    `; 
+
+    static articlesByOrderLine = `
+        SELECT 
+            RLP.CODARTICULO
+            , RLP.REFERENCIA
+            , RLP.CODALMACEN
+            , RLP.IDTARIFAV
+            , RLP.PRODUCTCOUNT
+            , RLP.PRECIOUNITARIO
+            , RLP.TOTALLINEA
+            , RCL.IDCONTEO
+            , RCL.CODARTICULO
+            , RCL.TALLA
+            , RCL.COLOR
+            , RCL.UNIDADES
+        FROM 
+            RIP.CONTEOSLIN RCL 
+            INNER JOIN RIP.PEDIDOS_CONTEOS RPC ON RCL.IDCONTEO = RPC.IDCONTEO
+            INNER JOIN RIP.LINEA_PED RLP ON RPC.IDPEDIDO = RLP.ORDERID
+        WHERE 
+            RCL.IDCONTEO = @CONTEO
     `; 
 
 }
