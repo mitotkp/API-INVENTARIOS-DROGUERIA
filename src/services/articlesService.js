@@ -26,7 +26,7 @@ export class ArticlesService {
             
             return {
                 data: result.recordset,
-                totalItems: result.recordset[0].total,
+                totalItems: total.recordset[0].total,
                 totalPages: Math.ceil(total.recordset[0].total / limit),
                 currentPage: page, 
                 limit, 

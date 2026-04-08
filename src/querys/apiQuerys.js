@@ -32,12 +32,19 @@ export class ArticlesQuerys  {
             LEFT JOIN MARCA MC ON ART.MARCA = MC.CODMARCA
             LEFT JOIN STOCKS ST1 ON ST1.CODARTICULO = AL.CODARTICULO AND ST1.TALLA = AL.TALLA AND ST1.COLOR = AL.COLOR AND ST1.CODALMACEN LIKE 'ZAV'
             LEFT JOIN STOCKS ST2 ON ST2.CODARTICULO = AL.CODARTICULO AND ST2.TALLA = AL.TALLA AND ST2.COLOR = AL.COLOR AND ST2.CODALMACEN LIKE 'ZAA'
-        WHERE
+       WHERE
             (@BUSQUEDA IS NULL 
+            OR CAST(ART.CODARTICULO AS VARCHAR) = @BUSQUEDA -- Búsqueda exacta de código
+            OR AL.CODBARRAS = @BUSQUEDA -- Búsqueda exacta de código de barras
             OR ART.DESCRIPCION LIKE '%' + @BUSQUEDA + '%' 
-            OR ART.DESCRIPCION LIKE '%' + @BUSQUEDA + '%'
             OR CAST(ART.CODARTICULO AS VARCHAR) LIKE '%' + @BUSQUEDA + '%')
         ORDER BY
+            CASE 
+                WHEN CAST(ART.CODARTICULO AS VARCHAR) = @BUSQUEDA THEN 1 -- Prioridad 1: Código exacto
+                WHEN AL.CODBARRAS = @BUSQUEDA THEN 2                    -- Prioridad 2: Barras exacto
+                WHEN ART.DESCRIPCION LIKE @BUSQUEDA + '%' THEN 3        -- Prioridad 3: Empieza por...
+                ELSE 4
+            END,
             ART.DESCRIPCION ASC 
         OFFSET @OFFSET ROWS 
         FETCH NEXT @LIMIT ROWS ONLY
@@ -50,10 +57,9 @@ export class ArticlesQuerys  {
             ARTICULOS ART 
             INNER JOIN ARTICULOSLIN AL ON ART.CODARTICULO = AL.CODARTICULO
             INNER JOIN ARTICULOSCAMPOSLIBRES ACL ON ART.CODARTICULO = ACL.CODARTICULO
-        WHERE
-            (@BUSQUEDA IS NULL 
+        WHERE (@BUSQUEDA IS NULL 
+            OR CAST(ART.CODARTICULO AS VARCHAR) = @BUSQUEDA 
             OR ART.DESCRIPCION LIKE '%' + @BUSQUEDA + '%' 
-            -- OR ART.DESCRIPCION LIKE '%' + @BUSQUEDA + '%' 
             OR CAST(ART.CODARTICULO AS VARCHAR) LIKE '%' + @BUSQUEDA + '%')
     `;
 
@@ -176,6 +182,7 @@ export class  inventoryQuerys {
         SELECT 
             RPC.IDPEDIDO, 
             RPC.IDCONTEO, 
+            RPC.ESTADO, 
             RPC.FECHA 
         FROM 
             RIP.PEDIDOS_CONTEOS RPC
@@ -214,6 +221,7 @@ export class  inventoryQuerys {
         SELECT 
             RPC.IDPEDIDO, 
             RPC.IDCONTEO,
+            RPC.ESTADO,
             RCV.CODVENDEDOR,
             RCV.IPDISPOSITIVO,
             RPC.FECHA 
@@ -236,6 +244,7 @@ export class  inventoryQuerys {
         SELECT 
             RPC.IDPEDIDO, 
             RPC.IDCONTEO,
+            RPC.ESTADO,
             RCV.CODVENDEDOR,
             RCV.IPDISPOSITIVO,
             RPC.FECHA 
@@ -281,8 +290,8 @@ export class  inventoryQuerys {
     `; 
 
     static createPedido = `
-        INSERT INTO RIP.PEDIDOS_CONTEOS (IDPEDIDO, IDCONTEO, FECHA, ESTADO)
-        VALUES (@PEDIDO, @CONTEO, GETDATE(), 'ACTIVO')
+        INSERT INTO RIP.PEDIDOS_CONTEOS (IDPEDIDO, IDCONTEO, FECHA, ESTADO, ESTADOPED)
+        VALUES (@PEDIDO, @CONTEO, GETDATE(), 'ACTIVO', @ESTADOPED)
     `; 
 
     static insertSellerCount = `
@@ -370,6 +379,42 @@ export class  inventoryQuerys {
         WHERE IDCONTEO = @CONTEO
     `;
 
+    static closePedCab = `
+        UPDATE RIP.CABECERA_PED
+        SET ESTADO = 'EMBALADO'
+        WHERE IDPEDIO = @PEDIDO
+    `; 
+
+    static checkBultos = `
+        SELECT * FROM RIP.BULTOS_CONTEO WHERE IDCONTEO = @CONTEO
+    `; 
+
+    static createBulto = `
+        INSERT INTO RIP.BULTOS_CONTEO (IDPEDIDO, IDCONTEO, IDBULTO, CODARTICULO, TALLA, COLOR, UNIDADES)
+        VALUES (@PEDIDO, @CONTEO, @BULTO, @CODARTICULO, @TALLA, @COLOR, @UNIDADES)
+    `; 
+
+    static updateBulto = `
+        UPDATE RIP.BULTOS_CONTEO SET CODARTICULO = @CODARTICULO AND TALLA = @TALLA AND COLOR = @COLOR AND UNIDADES = @UNIDADES 
+        WHERE IDCONTEO = @CONTEO AND IDBULTO = @BULTO  
+    `; 
+
+    static deleteBulto = `
+        DECLARE @IDBULTO NVARCHAR(MAX) = @BULTO 
+        DECLARE @IDCONTEO NVARCHAR(MAX) = @CONTEO
+
+        DELETE FROM RIP.BULTOS_CONTEO 
+        OUTPUT 
+            deleted.IDPEDIDO
+            deleted.IDCONTEO
+            deleted.IDBULTO
+            deleted.CODARTICULO 
+            deleted.TALLA 
+            deleted.COLOR 
+            deleted.UNIDADES
+        INTO RIP.BULTOS_CONTEO_ELIMINADOS (IDPEDIDO, IDCONTEO, IDBULTO, CODARTICULO, TALLA, COLOR, UNIDADES)
+        WHERE IDBULTO = @IDBULTO AND IDCONTEO = @IDCONTEO 
+    `; 
 }
 
 export class sellerQUerys {

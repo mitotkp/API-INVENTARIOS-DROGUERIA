@@ -285,6 +285,19 @@ export class InventoryService {
         const transaction = new sql.Transaction(pool);
 
         try {
+            const estadoPedido = await pool.request()
+                .input('ORDERID', sql.NVarChar, idPedido)
+                .query(inventoryQuerys.getPedido); 
+
+            if(estadoPedido.recordset.length === 0){
+                return {
+                    ok: false, 
+                    message: 'No se encontro el pedido'
+                }
+            }
+
+           let  estadoPedidoResult = estadoPedido.recordset[0].ESTATUS
+
             await transaction.begin();
             
             const idConteo = uuidGenerator.nuevoUUID();
@@ -292,6 +305,7 @@ export class InventoryService {
             const result = await transaction.request()
                 .input('PEDIDO', sql.NVarChar, idPedido)
                 .input('CONTEO', sql.NVarChar, idConteo)
+                .input('ESTADOPED', sql.NVarChar, estadoPedidoResult)
                 .query(inventoryQuerys.createPedido);
 
             const insertSeller = await transaction.request()
