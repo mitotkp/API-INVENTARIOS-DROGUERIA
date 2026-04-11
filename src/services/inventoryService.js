@@ -539,7 +539,7 @@ export class InventoryService {
             }
 
             await pool.request()
-                .input('CONTEO', sql.NVarChar, idConteo)
+                .input('IDCONTEO', sql.NVarChar, idConteo)
                 .query(inventoryQuerys.closePedido);
 
             return {
@@ -596,6 +596,21 @@ export class InventoryService {
             throw error;
         }
        
+    }
+
+    static async deleteBulto(idConteo, idBulto) {
+        try {
+            const pool = await getConnection();
+            await pool.request()
+                .input('IDCONTEO', sql.NVarChar, idConteo)
+                .input('IDBULTO', sql.NVarChar, idBulto)
+                .query(inventoryQuerys.deleteBulto);
+            
+            return { ok: true, message: 'Bulto eliminado y respaldado correctamente' };
+        } catch (error) {
+            console.error("Error al eliminar bulto:", error);
+            throw error;
+        }
     }
 
 }

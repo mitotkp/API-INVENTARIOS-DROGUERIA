@@ -297,4 +297,21 @@ export class InventoryControllers {
         } catch (error) { res.status(500).json({ ok: false, message: error.message }); }
     }
 
+    static deleteBulto = async (req, res) => {
+        try {
+            const { idConteo, idBulto } = req.query;
+            
+            if (!idConteo || !idBulto) {
+                return res.status(400).json({ ok: false, message: "El idConteo y el idBulto son obligatorios." });
+            }
+
+            const resultado = await InventoryService.deleteBulto(idConteo, idBulto);
+            res.status(200).json(resultado);
+            
+        } catch (error) {
+            console.error("Error eliminando bulto:", error);
+            res.status(500).json({ ok: false, message: error.message });
+        }
+    }
+
 }
