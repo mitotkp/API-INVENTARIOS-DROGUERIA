@@ -216,7 +216,7 @@ export class InventoryControllers {
 
             const codVendedor = req.user.codVendedor;
 
-            const articuloData = { codArticulo, unidades, unidadesSolicitadas, talla, color, idTarifa, precioUnitario };
+            const articuloData = { codArticulo, unidades, unidadesSolicitadas, talla, color, idTarifa , precioUnitario };
 
             const resultado = await InventoryService.insertCountLine(idConteo, codVendedor, articuloData);
 

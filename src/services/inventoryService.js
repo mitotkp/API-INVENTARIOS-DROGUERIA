@@ -411,6 +411,9 @@ export class InventoryService {
                 }
             }
 
+            const tarifaObtenida = articulosSolicitados.recordset[0].IDTARIFAV;
+            const precioObtenido = articulosSolicitados.recordset[0].PRECIOUNITARIO;
+
             const unidadesObtenidas = articulosSolicitados.recordset[0].PRODUCTCOUNT; 
 
             const result = await pool.request()
@@ -418,8 +421,8 @@ export class InventoryService {
                 .input('CODARTICULO', sql.Int, articuloData.codArticulo)
                 .input('TALLA', sql.NVarChar, '.')
                 .input('COLOR', sql.NVarChar, '.')
-                .input('IDTARIFAV', sql.Int, articuloData.idTarifa)
-                .input('PRECIOUNITARIO', sql.Float, articuloData.precioUnitario)
+                .input('IDTARIFAV', sql.Int, tarifaObtenida)
+                .input('PRECIOUNITARIO', sql.Float, precioObtenido)
                 .input('UNIDADES', sql.Int, articuloData.unidades)
                 .input('UNIDADESOLICITADAS', sql.Int, unidadesObtenidas)
                 .input('CODVENDEDOR', sql.Int, codVendedor)
