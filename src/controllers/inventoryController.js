@@ -280,4 +280,20 @@ export class InventoryControllers {
         }
     }
 
+    static createNewBulto = async (req, res) => {
+        try {
+            const { idPedido, idConteo } = req.query;
+            const bulto = await InventoryService.createBulto(idPedido, idConteo);
+            res.status(200).json({ ok: true, data: bulto });
+        } catch (error) { res.status(500).json({ ok: false, message: error.message }); }
+    }
+
+    static getBultos = async (req, res) => {
+        try {
+            const { idConteo } = req.query;
+            const bultos = await InventoryService.getBultos(idConteo);
+            res.status(200).json({ ok: true, data: bultos });
+        } catch (error) { res.status(500).json({ ok: false, message: error.message }); }
+    }
+
 }

@@ -16,4 +16,6 @@ router.post('/scanProduct', verificarToken, InventoryControllers.scanProduct);
 router.get('/verifyCount', verificarToken, InventoryControllers.verifyCount); 
 router.post('/closeCount', verificarToken, InventoryControllers.closeCount);
 router.get('/getOrderDetails', verificarToken, InventoryControllers.orderDetails);
+router.post('/createBulto', verificarToken, InventoryControllers.createNewBulto);
+router.get('/getBultos', verificarToken, InventoryControllers.getBultos);
 export default router; 

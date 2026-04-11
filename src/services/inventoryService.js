@@ -542,4 +542,47 @@ export class InventoryService {
         }
     }
 
+    static async createBulto(idPedido, idConteo) {
+        try {
+            const pool = await getConnection();
+            const result = await pool.request()
+                .input('IDPEDIDO', sql.NVarChar, idPedido)
+                .input('IDCONTEO', sql.NVarChar, idConteo)
+                .query(inventoryQuerys.createBulto);
+            
+            // Validaciones de seguridad por si el driver de SQL actúa extraño
+            if (result && result.recordset && result.recordset.length > 0) {
+                return result.recordset[0];
+            } else if (result && result.recordsets && result.recordsets.length > 0) {
+                // Si SQL Server lo manda en un arreglo de recordsets múltiple
+                const lastRecordset = result.recordsets[result.recordsets.length - 1];
+                if (lastRecordset && lastRecordset.length > 0) {
+                    return lastRecordset[0];
+                }
+            }
+            
+            throw new Error("El bulto se creó, pero SQL Server no devolvió el ID.");
+
+        } catch (error) {
+            console.error("Error crítico en createBulto:", error);
+            throw error;
+        }
+    }
+
+    static async getBultos(idConteo) {
+        try{
+            const pool = await getConnection();
+
+            const result = await pool.request()
+                .input('IDCONTEO', sql.NVarChar, idConteo)
+                .query(inventoryQuerys.getBultosByConteo);
+            
+            return result.recordset;
+        }catch(error){
+            console.error("Error al obtener los bultos:", error);
+            throw error;
+        }
+       
+    }
+
 }
