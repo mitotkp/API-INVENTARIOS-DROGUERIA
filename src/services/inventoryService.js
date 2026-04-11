@@ -1,5 +1,5 @@
 import { getConnection, sql } from "../config/dbConfig.js";
-import { inventoryQuerys } from "../querys/apiQuerys.js";
+import { inventoryQuerys, sellerQUerys } from "../querys/apiQuerys.js";
 import { uuidGenerator } from "../utils/generateIdCount.js";
 
 export class InventoryService {
@@ -465,7 +465,7 @@ export class InventoryService {
 
             const vendedores = await pool.request()
                 .input('CONTEO', sql.NVarChar, idConteo)
-                .query(inventoryQuerys.getSellersByCount);
+                .query(sellerQUerys.getSellersByCount);
 
             if (comprobacion.recordset.length === 0) {
                 return { 

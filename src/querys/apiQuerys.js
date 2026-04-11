@@ -465,7 +465,7 @@ export class sellerQUerys {
     `; 
 
     static getSellersByCount = `
-        SELECT 
+        SELECT DISTINCT
             CV.CODVENDEDOR,
             V.NOMVENDEDOR
         FROM 
