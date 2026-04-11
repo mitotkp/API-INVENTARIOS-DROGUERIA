@@ -314,4 +314,13 @@ export class InventoryControllers {
         }
     }
 
+    static closedOrders = async (req, res) => {
+        try {
+            const data = await InventoryService.getClosedOrders();
+            res.status(200).json({ ok: true, data });
+        } catch (error) {
+            res.status(500).json({ ok: false, error: "Error al cargar el historial" });
+        }
+    }
+
 }

@@ -19,4 +19,5 @@ router.get('/getOrderDetails', verificarToken, InventoryControllers.orderDetails
 router.post('/createBulto', verificarToken, InventoryControllers.createNewBulto);
 router.get('/getBultos', verificarToken, InventoryControllers.getBultos);
 router.post('/deleteBulto', verificarToken, InventoryControllers.deleteBulto);
+router.get('/getClosedOrders', verificarToken, InventoryControllers.closedOrders);
 export default router; 

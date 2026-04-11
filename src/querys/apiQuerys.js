@@ -415,6 +415,15 @@ export class  inventoryQuerys {
         END CATCH
     `;
 
+    static getClosedOrders = `
+        SELECT DISTINCT P.ORDERID, D.NOMBRECLIENTE, P.FECHA, P.ESTATUS
+        FROM DBO.CABECERA_PED P
+        INNER JOIN DBO.PEDIDOS_CONTEOS C ON P.ORDERID = C.IDPEDIDO
+        INNER JOIN CLIENTES D ON D.CODCLIENTE = P.CLIENTEID
+        WHERE P.ESTATUS = 'OK' AND C.ESTADO = 'CERRADO'
+        ORDER BY P.FECHA DESC
+    `;
+
     static getOrderDetailsPreview = `
         SELECT 
             RLP.CODARTICULO,

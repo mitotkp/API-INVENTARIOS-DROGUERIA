@@ -613,4 +613,15 @@ export class InventoryService {
         }
     }
 
+    static async getClosedOrders() {
+        try {
+            const pool = await getConnection();
+            const result = await pool.request().query(inventoryQuerys.getClosedOrders);
+            return result.recordset;
+        } catch (error) {
+            console.error("Error al obtener pedidos cerrados:", error);
+            throw error;
+        }
+    }
+
 }
