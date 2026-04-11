@@ -223,18 +223,19 @@ export class InventoryControllers {
 
     static scanProduct = async (req, res) => {
         try{
-            const { idConteo, codArticulo, unidades, unidadesSolicitadas, talla, color, idTarifa, precioUnitario } = req.body; 
+            // AÑADIMOS idBulto, nVisual, idPedido
+            const { idConteo, idPedido, codArticulo, unidades, unidadesSolicitadas, talla, color, idTarifa, precioUnitario, idBulto, nVisual } = req.body; 
 
-            if (!idConteo || !codArticulo || unidades === undefined) {
+            if (!idConteo || !codArticulo || unidades === undefined || !idBulto) {
                 return res.status(400).json({ 
                     ok: false, 
-                    message: "Faltan datos obligatorios: idConteo, codArticulo y unidades son requeridos." 
+                    message: "Faltan datos obligatorios: idConteo, codArticulo, unidades y Bulto son requeridos." 
                 });
             }
 
             const codVendedor = req.user.codVendedor;
 
-            const articuloData = { codArticulo, unidades, unidadesSolicitadas, talla, color, idTarifa , precioUnitario };
+            const articuloData = { codArticulo, unidades, unidadesSolicitadas, talla, color, idTarifa , precioUnitario, idBulto, nVisual, idPedido };
 
             const resultado = await InventoryService.insertCountLine(idConteo, codVendedor, articuloData);
 

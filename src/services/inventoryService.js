@@ -430,9 +430,9 @@ export class InventoryService {
             const tarifaObtenida = articulosSolicitados.recordset[0].IDTARIFAV;
             const precioObtenido = articulosSolicitados.recordset[0].PRECIOUNITARIO;
 
-            const unidadesObtenidas = articulosSolicitados.recordset[0].PRODUCTCOUNT; 
+            const unidadesObtenidas = articulosSolicitados.recordset[0].PRODUCTCOUNT;
 
-            const result = await pool.request()
+            await pool.request()
                 .input('IDCONTEO', sql.NVarChar, idConteo)
                 .input('CODARTICULO', sql.Int, articuloData.codArticulo)
                 .input('TALLA', sql.NVarChar, '.')
@@ -442,12 +442,25 @@ export class InventoryService {
                 .input('UNIDADES', sql.Int, articuloData.unidades)
                 .input('UNIDADESOLICITADAS', sql.Int, unidadesObtenidas)
                 .input('CODVENDEDOR', sql.Int, codVendedor)
-                .query(inventoryQuerys.insertProductLine)
+                .query(inventoryQuerys.insertProductLine);
 
-                return {
-                    ok: true, 
-                    message: 'Artìculo registrado en el conteo exitosamente'
-                }
+            await pool.request()
+                .input('IDPEDIDO', sql.NVarChar, articuloData.idPedido)
+                .input('IDCONTEO', sql.NVarChar, idConteo)
+                .input('IDBULTO', sql.NVarChar, articuloData.idBulto)
+                .input('NVISUAL', sql.Int, articuloData.nVisual)
+                .input('CODARTICULO', sql.Int, articuloData.codArticulo)
+                .input('TALLA', sql.NVarChar, '.')
+                .input('COLOR', sql.NVarChar, '.')
+                .input('IDTARIFAV', sql.Int, tarifaObtenida)
+                .input('PRECIOUNITARIO', sql.Float, precioObtenido)
+                .input('UNIDADES', sql.Int, articuloData.unidades)
+                .query(inventoryQuerys.upsertBultoLine); 
+
+            return {
+                ok: true, 
+                message: 'Artículo registrado en el global y en el bulto exitosamente'
+            };
 
         }catch(error){
             console.error("Error en el servicio al insertar línea de conteo:", error);
