@@ -386,6 +386,18 @@ export class  inventoryQuerys {
         WHERE IDPEDIO = @PEDIDO
     `; 
 
+    static getOrderDetailsPreview = `
+        SELECT 
+            RLP.CODARTICULO,
+            ART.DESCRIPCION,
+            RLP.PRODUCTCOUNT AS SOLICITADAS
+        FROM 
+            DBO.LINEA_PED RLP
+            LEFT JOIN ARTICULOS ART ON RLP.CODARTICULO = ART.CODARTICULO
+        WHERE 
+            RLP.ORDERID = @ORDERID
+    `;
+
     static checkBultos = `
         SELECT * FROM DBO.BULTOS_CONTEO WHERE IDCONTEO = @CONTEO
     `; 
@@ -451,6 +463,17 @@ export class sellerQUerys {
         WHERE
             NEWPASSENTRADA = @PASSENTRADA
     `; 
+
+    static getSellersByCount = `
+        SELECT 
+            CV.CODVENDEDOR,
+            V.NOMVENDEDOR
+        FROM 
+            DBO.CONTEOS_VENDEDORES CV
+            LEFT JOIN VENDEDORES V ON CV.CODVENDEDOR = V.CODVENDEDOR
+        WHERE 
+            CV.IDCONTEO = @CONTEO
+    `;
 
     static insertToken = `
         INSERT INTO ACCESOS_DROGUERIA (CODVENDEDOR, TOKEN, ACTIVO)

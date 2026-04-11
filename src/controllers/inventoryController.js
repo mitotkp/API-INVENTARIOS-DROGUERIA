@@ -27,6 +27,24 @@ export class InventoryControllers {
 
     }
 
+    static orderDetails = async (req, res) => {
+        try {
+            let { idPedido } = req.query; 
+            
+            if (!idPedido) {
+                return res.status(400).json({ ok: false, message: "El idPedido es obligatorio en la URL" });
+            }
+
+            const detalles = await InventoryService.getOrderDetails(idPedido); 
+
+            res.status(200).json({ ok: true, data: detalles });
+
+        } catch (error) {
+            console.error("Error al traer los artículos del pedido:", error); 
+            res.status(500).json({ ok: false, error: "Error interno al traer los detalles del pedido" });
+        }
+    }
+
     static countsList = async (req, res) => {
         try{
             

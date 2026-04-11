@@ -76,6 +76,22 @@ export class InventoryService {
         }
     }
 
+    static async getOrderDetails(idPedido) {
+        try {
+            const pool = await getConnection();
+
+            const result = await pool.request()
+                .input("ORDERID", sql.NVarChar, idPedido)
+                .query(inventoryQuerys.getOrderDetailsPreview);
+            
+            return result.recordset;
+
+        } catch (error) {
+            console.error("Error al traer la lista de artículos del pedido:", error);
+            throw error; 
+        }
+    }
+
     static async getCounts(busqueda, page, limit) {
         try{
             const pool = await getConnection(); 
@@ -447,8 +463,17 @@ export class InventoryService {
                 .input('CONTEO', sql.NVarChar, idConteo)
                 .query(inventoryQuerys.checkCountDifferences);
 
+            const vendedores = await pool.request()
+                .input('CONTEO', sql.NVarChar, idConteo)
+                .query(inventoryQuerys.getSellersByCount);
+
             if (comprobacion.recordset.length === 0) {
-                return { ok: false, message: 'No se encontraron detalles para este conteo.' };
+                return { 
+                    ok: true, 
+                    message: 'No se encontraron detalles para este conteo.', 
+                    vendedores: vendedores.recordset || [],
+                    detalles: []
+                };
             }
 
             const detalles = comprobacion.recordset;
@@ -459,7 +484,8 @@ export class InventoryService {
                 hayDiferencias: conDiferencias.length > 0,
                 totalArticulos: detalles.length,
                 articulosConError: conDiferencias.length,
-                detalles: detalles 
+                detalles: detalles,
+                vendedores: vendedores.recordset 
             };
 
         } catch (error) {
