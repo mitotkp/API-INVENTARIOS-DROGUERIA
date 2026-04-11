@@ -372,7 +372,15 @@ export class  inventoryQuerys {
             ART.DESCRIPCION,
             RLP.PRODUCTCOUNT AS SOLICITADAS,
             ISNULL(SUM(RCL.UNIDADES), 0) AS CONTADAS,
-            (ISNULL(SUM(RCL.UNIDADES), 0) - RLP.PRODUCTCOUNT) AS DIFERENCIA
+            (ISNULL(SUM(RCL.UNIDADES), 0) - RLP.PRODUCTCOUNT) AS DIFERENCIA,
+            -- NUEVA LÓGICA: Trae un texto plano separado por comas con el desglose de bultos
+            STUFF((
+                SELECT ', Bulto ' + CAST(B.NVISUAL AS VARCHAR) + ' (' + CAST(B.UNIDADES AS VARCHAR) + ')'
+                FROM DBO.BULTOS_CONTEO B
+                WHERE B.IDCONTEO = @CONTEO AND B.CODARTICULO = RLP.CODARTICULO AND B.UNIDADES > 0
+                ORDER BY B.NVISUAL ASC
+                FOR XML PATH('')
+            ), 1, 2, '') AS DETALLE_BULTOS
         FROM 
             DBO.PEDIDOS_CONTEOS RPC
             INNER JOIN DBO.LINEA_PED RLP ON RPC.IDPEDIDO = RLP.ORDERID
