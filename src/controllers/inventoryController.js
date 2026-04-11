@@ -205,7 +205,7 @@ export class InventoryControllers {
 
     static scanProduct = async (req, res) => {
         try{
-            const { idConteo, codArticulo, unidades, unidadesSolicitadas, talla, color } = req.body; 
+            const { idConteo, codArticulo, unidades, unidadesSolicitadas, talla, color, idTarifa, precioUnitario } = req.body; 
 
             if (!idConteo || !codArticulo || unidades === undefined) {
                 return res.status(400).json({ 
@@ -216,7 +216,7 @@ export class InventoryControllers {
 
             const codVendedor = req.user.codVendedor;
 
-            const articuloData = { codArticulo, unidades, unidadesSolicitadas, talla, color };
+            const articuloData = { codArticulo, unidades, unidadesSolicitadas, talla, color, idTarifa, precioUnitario };
 
             const resultado = await InventoryService.insertCountLine(idConteo, codVendedor, articuloData);
 

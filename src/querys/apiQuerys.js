@@ -122,13 +122,14 @@ export class  inventoryQuerys {
             , RCP.ESTATUS
             , RCP.TOTALPRECIO
         FROM 
-            RIP.CABECERA_PED RCP
+            DBO.CABECERA_PED RCP
             INNER JOIN CLIENTES C ON C.CODCLIENTE = RCP.CLIENTEID
         WHERE
             (@BUSQUEDA IS NULL 
             OR RCP.ORDERID  = @BUSQUEDA 
             OR RCP.ORDERID = @BUSQUEDA  
             OR CAST(RCP.ORDERID AS INT) = @BUSQUEDA)
+            AND RCP.ESTATUS = 'AUTORIZADO' OR RCP.ESTATUS = 'OK'
         ORDER BY
             RCP.ORDERID ASC 
         OFFSET @OFFSET ROWS 
@@ -145,7 +146,7 @@ export class  inventoryQuerys {
             , RCP.ESTATUS
             , RCP.TOTALPRECIO
         FROM 
-            RIP.CABECERA_PED RCP
+            DBO.CABECERA_PED RCP
             INNER JOIN CLIENTES C ON RCP.CLIENTEID = C.CODCLIENTE
         WHERE
             RCP.ORDERID = @ORDERID
@@ -163,14 +164,14 @@ export class  inventoryQuerys {
             , RLP.PRECIOUNITARIO
             , RLP.TOTALLINEA
         FROM 
-            RIP.LINEA_PED RLP
+            DBO.LINEA_PED RLP
         WHERE 
             RLP.ORDERID = @ORDERID
     `; 
 
     static countPedidos = `
         SELECT COUNT(*) AS total 
-        FROM RIP.CABECERA_PED RCP
+        FROM DBO.CABECERA_PED RCP
         WHERE
             (@BUSQUEDA IS NULL 
             OR RCP.ORDERID  = @BUSQUEDA 
@@ -185,7 +186,7 @@ export class  inventoryQuerys {
             RPC.ESTADO, 
             RPC.FECHA 
         FROM 
-            RIP.PEDIDOS_CONTEOS RPC
+            DBO.PEDIDOS_CONTEOS RPC
         WHERE
             (@BUSQUEDA IS NULL 
             OR RPC.IDCONTEO  = @BUSQUEDA 
@@ -201,7 +202,7 @@ export class  inventoryQuerys {
         SELECT 
             COUNT(*) AS total 
         FROM 
-            RIP.PEDIDOS_CONTEOS RPC
+            DBO.PEDIDOS_CONTEOS RPC
         WHERE
             (@BUSQUEDA IS NULL 
             OR RPC.IDCONTEO  = @BUSQUEDA 
@@ -210,11 +211,11 @@ export class  inventoryQuerys {
     `;
 
     static getConteo = `
-        SELECT * FROM RIP.PEDIDOS_CONTEOS WHERE IDPEDIDO = @PEDIDO
+        SELECT * FROM DBO.PEDIDOS_CONTEOS WHERE IDPEDIDO = @PEDIDO
     `; 
 
     static getConteoById = `
-        SELECT * FROM RIP.PEDIDOS_CONTEOS WHERE IDCONTEO = @CONTEO
+        SELECT * FROM DBO.PEDIDOS_CONTEOS WHERE IDCONTEO = @CONTEO
     `; 
 
     static getConteoBySeller = `
@@ -226,8 +227,8 @@ export class  inventoryQuerys {
             RCV.IPDISPOSITIVO,
             RPC.FECHA 
         FROM 
-            RIP.PEDIDOS_CONTEOS RPC
-            INNER JOIN RIP.CONTEOS_VENDEDORES RCV ON RPC.IDCONTEO = RCV.IDCONTEO
+            DBO.PEDIDOS_CONTEOS RPC
+            INNER JOIN DBO.CONTEOS_VENDEDORES RCV ON RPC.IDCONTEO = RCV.IDCONTEO
         WHERE
             RCV.CODVENDEDOR = @VENDEDOR
             AND (@BUSQUEDA IS NULL 
@@ -249,8 +250,8 @@ export class  inventoryQuerys {
             RCV.IPDISPOSITIVO,
             RPC.FECHA 
         FROM 
-            RIP.PEDIDOS_CONTEOS RPC
-            INNER JOIN RIP.CONTEOS_VENDEDORES RCV ON RPC.IDCONTEO = RCV.IDCONTEO
+            DBO.PEDIDOS_CONTEOS RPC
+            INNER JOIN DBO.CONTEOS_VENDEDORES RCV ON RPC.IDCONTEO = RCV.IDCONTEO
         WHERE
             RCV.CODVENDEDOR = @VENDEDOR
             AND RPC.IDCONTEO = @CONTEO
@@ -260,8 +261,8 @@ export class  inventoryQuerys {
         SELECT 
            COUNT(*) AS total
        FROM 
-           RIP.PEDIDOS_CONTEOS RPC
-           INNER JOIN RIP.CONTEOS_VENDEDORES RCV ON RPC.IDCONTEO = RCV.IDCONTEO
+           DBO.PEDIDOS_CONTEOS RPC
+           INNER JOIN DBO.CONTEOS_VENDEDORES RCV ON RPC.IDCONTEO = RCV.IDCONTEO
        WHERE
             RCV.CODVENDEDOR = @VENDEDOR
            AND (@BUSQUEDA IS NULL 
@@ -274,7 +275,7 @@ export class  inventoryQuerys {
         SELECT 
             * 
         FROM 
-            RIP.CONTEOSLIN 
+            DBO.CONTEOSLIN 
         WHERE 
             CODVENDEDOR = @VENDEDOR
             AND IDCONTEO = @CONTEO
@@ -284,18 +285,18 @@ export class  inventoryQuerys {
         SELECT 
 	        *
         FROM 
-	        RIP.CONTEOSLIN RCL 
+	        DBO.CONTEOSLIN RCL 
         WHERE 
 	        RCL.IDCONTEO = @CONTEO
     `; 
 
     static createPedido = `
-        INSERT INTO RIP.PEDIDOS_CONTEOS (IDPEDIDO, IDCONTEO, FECHA, ESTADO, ESTADOPED)
+        INSERT INTO DBO.PEDIDOS_CONTEOS (IDPEDIDO, IDCONTEO, FECHA, ESTADO, ESTADOPED)
         VALUES (@PEDIDO, @CONTEO, GETDATE(), 'ACTIVO', @ESTADOPED)
     `; 
 
     static insertSellerCount = `
-        INSERT INTO RIP.CONTEOS_VENDEDORES (IDCONTEO, CODVENDEDOR, IPDISPOSITIVO)
+        INSERT INTO DBO.CONTEOS_VENDEDORES (IDCONTEO, CODVENDEDOR, IPDISPOSITIVO)
         VALUES (@CONTEO, @VENDEDOR, @IP)
     `; 
 
@@ -303,7 +304,7 @@ export class  inventoryQuerys {
         SELECT 
             * 
         FROM 
-            RIP.CONTEOS_VENDEDORES 
+            DBO.CONTEOS_VENDEDORES 
         WHERE
             IDCONTEO = @CONTEO 
             AND CODVENDEDOR = @VENDEDOR 
@@ -316,14 +317,14 @@ export class  inventoryQuerys {
             , RPC.IDPEDIDO
             , RPC.FECHA
         FROM 
-            RIP.CONTEOS_VENDEDORES RCV
-            INNER JOIN RIP.PEDIDOS_CONTEOS RPC ON RCV.IDCONTEO = RPC.IDCONTEO
+            DBO.CONTEOS_VENDEDORES RCV
+            INNER JOIN DBO.PEDIDOS_CONTEOS RPC ON RCV.IDCONTEO = RPC.IDCONTEO
         WHERE 
             RCV.IDCONTEO = @CONTEO
     `; 
 
     static insertProductLine = `
-        INSERT INTO RIP.CONTEOSLIN 
+        INSERT INTO DBO.CONTEOSLIN 
         (FECHA, CODARTICULO, TALLA, COLOR, HORACONTEO, CODVENDEDOR, UNIDADES, UNIDADESOLICITADAS, IDCONTEO)
         VALUES 
         (CAST(GETDATE() AS DATE), @CODARTICULO, @TALLA, @COLOR, CONVERT(TIME, GETDATE()), @CODVENDEDOR, @UNIDADES, @UNIDADESOLICITADAS,  @IDCONTEO)
@@ -348,8 +349,8 @@ export class  inventoryQuerys {
             , RLP.PRECIOUNITARIO
             , RLP.TOTALLINEA
         FROM 
-            RIP.PEDIDOS_CONTEOS RPC
-            INNER JOIN RIP.LINEA_PED RLP ON RPC.IDPEDIDO = RLP.ORDERID
+            DBO.PEDIDOS_CONTEOS RPC
+            INNER JOIN DBO.LINEA_PED RLP ON RPC.IDPEDIDO = RLP.ORDERID
         WHERE 
             RPC.IDCONTEO = @CONTEO 
             AND RLP.CODARTICULO = @CODARTICULO
@@ -363,10 +364,10 @@ export class  inventoryQuerys {
             ISNULL(SUM(RCL.UNIDADES), 0) AS CONTADAS,
             (ISNULL(SUM(RCL.UNIDADES), 0) - RLP.PRODUCTCOUNT) AS DIFERENCIA
         FROM 
-            RIP.PEDIDOS_CONTEOS RPC
-            INNER JOIN RIP.LINEA_PED RLP ON RPC.IDPEDIDO = RLP.ORDERID
+            DBO.PEDIDOS_CONTEOS RPC
+            INNER JOIN DBO.LINEA_PED RLP ON RPC.IDPEDIDO = RLP.ORDERID
             LEFT JOIN ARTICULOS ART ON RLP.CODARTICULO = ART.CODARTICULO
-            LEFT JOIN RIP.CONTEOSLIN RCL ON RPC.IDCONTEO = RCL.IDCONTEO AND RLP.CODARTICULO = RCL.CODARTICULO
+            LEFT JOIN DBO.CONTEOSLIN RCL ON RPC.IDCONTEO = RCL.IDCONTEO AND RLP.CODARTICULO = RCL.CODARTICULO
         WHERE 
             RPC.IDCONTEO = @CONTEO
         GROUP BY 
@@ -374,28 +375,28 @@ export class  inventoryQuerys {
     `;
 
     static closePedido = `
-        UPDATE RIP.PEDIDOS_CONTEOS 
+        UPDATE DBO.PEDIDOS_CONTEOS 
         SET ESTADO = 'CERRADO' 
         WHERE IDCONTEO = @CONTEO
     `;
 
     static closePedCab = `
-        UPDATE RIP.CABECERA_PED
+        UPDATE DBO.CABECERA_PED
         SET ESTADO = 'EMBALADO'
         WHERE IDPEDIO = @PEDIDO
     `; 
 
     static checkBultos = `
-        SELECT * FROM RIP.BULTOS_CONTEO WHERE IDCONTEO = @CONTEO
+        SELECT * FROM DBO.BULTOS_CONTEO WHERE IDCONTEO = @CONTEO
     `; 
 
     static createBulto = `
-        INSERT INTO RIP.BULTOS_CONTEO (IDPEDIDO, IDCONTEO, IDBULTO, CODARTICULO, TALLA, COLOR, UNIDADES)
+        INSERT INTO DBO.BULTOS_CONTEO (IDPEDIDO, IDCONTEO, IDBULTO, CODARTICULO, TALLA, COLOR, UNIDADES)
         VALUES (@PEDIDO, @CONTEO, @BULTO, @CODARTICULO, @TALLA, @COLOR, @UNIDADES)
     `; 
 
     static updateBulto = `
-        UPDATE RIP.BULTOS_CONTEO SET CODARTICULO = @CODARTICULO AND TALLA = @TALLA AND COLOR = @COLOR AND UNIDADES = @UNIDADES 
+        UPDATE DBO.BULTOS_CONTEO SET CODARTICULO = @CODARTICULO AND TALLA = @TALLA AND COLOR = @COLOR AND UNIDADES = @UNIDADES 
         WHERE IDCONTEO = @CONTEO AND IDBULTO = @BULTO  
     `; 
 
@@ -403,7 +404,7 @@ export class  inventoryQuerys {
         DECLARE @IDBULTO NVARCHAR(MAX) = @BULTO 
         DECLARE @IDCONTEO NVARCHAR(MAX) = @CONTEO
 
-        DELETE FROM RIP.BULTOS_CONTEO 
+        DELETE FROM DBO.BULTOS_CONTEO 
         OUTPUT 
             deleted.IDPEDIDO
             deleted.IDCONTEO
@@ -412,7 +413,7 @@ export class  inventoryQuerys {
             deleted.TALLA 
             deleted.COLOR 
             deleted.UNIDADES
-        INTO RIP.BULTOS_CONTEO_ELIMINADOS (IDPEDIDO, IDCONTEO, IDBULTO, CODARTICULO, TALLA, COLOR, UNIDADES)
+        INTO DBO.BULTOS_CONTEO_ELIMINADOS (IDPEDIDO, IDCONTEO, IDBULTO, CODARTICULO, TALLA, COLOR, UNIDADES)
         WHERE IDBULTO = @IDBULTO AND IDCONTEO = @IDCONTEO 
     `; 
 }

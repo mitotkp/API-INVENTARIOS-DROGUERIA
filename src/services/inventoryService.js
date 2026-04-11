@@ -301,7 +301,7 @@ export class InventoryService {
             await transaction.begin();
             
             const idConteo = uuidGenerator.nuevoUUID();
-
+            
             const result = await transaction.request()
                 .input('PEDIDO', sql.NVarChar, idPedido)
                 .input('CONTEO', sql.NVarChar, idConteo)
@@ -418,6 +418,8 @@ export class InventoryService {
                 .input('CODARTICULO', sql.Int, articuloData.codArticulo)
                 .input('TALLA', sql.NVarChar, '.')
                 .input('COLOR', sql.NVarChar, '.')
+                .input('IDTARIFAV', sql.Int, articuloData.idTarifa)
+                .input('PRECIOUNITARIO', sql.Float, articuloData.precioUnitario)
                 .input('UNIDADES', sql.Int, articuloData.unidades)
                 .input('UNIDADESOLICITADAS', sql.Int, unidadesObtenidas)
                 .input('CODVENDEDOR', sql.Int, codVendedor)
